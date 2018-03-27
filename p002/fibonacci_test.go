@@ -11,7 +11,6 @@ func TestEvenFibs(t *testing.T) {
 		{9, 10},
 		{34, 10},
 		{35, 44},
-
 	}
 	for _, c := range cases {
 
