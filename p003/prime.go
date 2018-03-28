@@ -30,33 +30,6 @@ func primesCovering(maxPrime int) [] int {
 	return append([] int{2}, knownPrimes...)
 }
 
-
-// returns a slice of howMany primes
-func primeList(howMany int) [] int {
-	knownPrimes := make([]int, 0, howMany)
-	if howMany > 1 {
-		candidate := 3
-		knownPrimes = append(knownPrimes, candidate)
-
-	FactorFound:
-		for len(knownPrimes) < howMany - 1 {
-			candidate += 2
-			sqrtLimit := int(math.Sqrt(float64(candidate)) + 1)
-			for _, p := range knownPrimes {
-				if p > sqrtLimit {
-					break // any non-prime will have factor <= sqrt(candidate), therefore this one is prime
-				}
-				if candidate%p == 0 {
-					continue FactorFound // next candidate
-				}
-			}
-			knownPrimes = append(knownPrimes, candidate)
-		}
-	}
-
-	return append([] int{2}, knownPrimes...)
-}
-
 //returns a generator function that produces successive primes on each call beginning with 5
 func oddSieve(capacityEstimate int) func() int {
 	knownPrimes := make([]int, 1, capacityEstimate)
@@ -98,7 +71,3 @@ func pfactor(x int) [] int {
 	return factors
 }
 
-func nthPrime(index int) int {
-	pList := primeList(index)
-	return pList[len(pList)-1]
-}
