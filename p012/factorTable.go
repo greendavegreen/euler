@@ -2,6 +2,7 @@ package main
 
 import (
 	"math"
+	"fmt"
 )
 
 // returns a slice prime numbers that equals or exceeds maxPrime
@@ -31,46 +32,84 @@ func primesCovering(maxPrime int) [] int {
 	return append([] int{2}, knownPrimes...)
 }
 
-type factorMap struct {
-	cover  []int
-	counts []int
+
+func NewFactorTable(upperLimit int) *factorTable {
+	tableBounds := int(math.Sqrt(float64(upperLimit)))
+	cover := primesCovering(tableBounds)
+	maxPrime := cover[len(cover)-1]
+	return &factorTable{primesCovering(tableBounds), maxPrime * maxPrime}
+}
+
+type factorTable struct {
+	cover       []int
+	maxPromised int
+}
+
+type factored struct {
+	v   int
+	cover   []int
+	counts  []int
+	remains int
 }
 
 // set exponents in r to be factors of x
-func (r *factorMap) factor(x int) {
-	coverSize := len(r.cover)
-	r.counts = make([]int, coverSize, coverSize)
+func (t factorTable) factor(x int) *factored {
+	if x > t.maxPromised {
+		fmt.Errorf("input value too large for this factorTable %v", x)
+	}
+
+	exps := make([]int, len(t.cover))
 
 	residue := x
-	for i, d := range r.cover {
+	for i, d := range t.cover {
 		for residue%d == 0 {
 			residue = residue / d
-			r.counts[i] += 1
+			exps[i] += 1
+		}
+		if residue == 1 {
+			break
 		}
 	}
+	return &factored{x, t.cover, exps, residue}
 }
 
-func (r factorMap) value() int {
-	result := 1
-	for i, base := range r.cover {
-		for j := r.counts[i]; j > 0; j-- {
-			result *= base
+
+
+func (f factored) primeFactors() []int {
+	var res []int
+	for i, base := range f.cover {
+		for j := 0; j < f.counts[i]; j++ {
+			res = append(res, base)
 		}
+	}
+	if f.remains > 1 {
+		res = append(res, f.remains)
+	}
+	return res
+}
+
+func (f factored) value() int {
+	return f.v
+}
+
+func (f factored) divisorCount() int {
+	result := 1
+	for _, v := range f.counts {
+		result *= (v + 1)
+	}
+	if f.remains > 1 {
+		result *= 2
 	}
 	return result
 }
 
-// returns fm of lcm of input fms
-// operates on the fact that the LCM when factored will consist of
-// at least as many copies of each prime as the inputs
-// so 18 is 2x3x3,   1 copy of 2, 2 of 3
-// and 4 is 2x2      2 copies of 2, 0 of 3
-// so LCM(4, 18) must be 2x2x3x3
 
-func lcm(fMaps ... factorMap) factorMap {
+
+func (t factorTable) lcm(fMaps ... factored) *factored {
 	if len(fMaps) == 0 {
-		return factorMap{[]int{2}, []int{0}}
+		// error
 	}
+
 	// baseline is zero of everything
 	firstCover := fMaps[0].cover
 	counts := make([]int, len(firstCover))
@@ -84,5 +123,5 @@ func lcm(fMaps ... factorMap) factorMap {
 		}
 	}
 
-	return factorMap{firstCover, counts}
+	return &factored{0, firstCover, counts, 1}
 }
