@@ -32,24 +32,16 @@ func primesCovering(maxPrime int) [] int {
 	return append([] int{2}, knownPrimes...)
 }
 
+type factorTable struct {
+	cover       []int
+	maxPromised int
+}
 
 func NewFactorTable(upperLimit int) *factorTable {
 	tableBounds := int(math.Sqrt(float64(upperLimit)))
 	cover := primesCovering(tableBounds)
 	maxPrime := cover[len(cover)-1]
 	return &factorTable{primesCovering(tableBounds), maxPrime * maxPrime}
-}
-
-type factorTable struct {
-	cover       []int
-	maxPromised int
-}
-
-type factored struct {
-	v   int
-	cover   []int
-	counts  []int
-	remains int
 }
 
 // set exponents in r to be factors of x
@@ -72,6 +64,61 @@ func (t factorTable) factor(x int) *factored {
 	}
 	return &factored{x, t.cover, exps, residue}
 }
+
+func contains(s []int, e int) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func (ft factorTable) lcm(fMaps ... factored) *factored {
+	if len(fMaps) == 0 {
+		return &factored{0, []int{}, []int{}, 1}
+	}
+	// baseline is zero of everything
+	counts := make([]int, len(ft.cover))
+
+	remainsFoundList := make([]int, 0)
+	remainsBuilder := 1
+
+	// if any factormap uses more copies of a factor, up our count to that
+	for _, fm := range fMaps {
+		if len(ft.cover) != len(fm.cover) {
+			fmt.Errorf("item passed to factortable.lcm has illegal table")
+		}
+		for i, d := range fm.counts {
+			if counts[i] < d {
+				counts[i] = d
+			}
+		}
+		if !contains(remainsFoundList, fm.remains) {
+			remainsFoundList = append(remainsFoundList, fm.remains)
+			remainsBuilder = remainsBuilder * fm.remains
+		}
+	}
+
+	rawValue := 1
+	for i, base := range ft.cover {
+		for j := counts[i]; j > 0; j-- {
+			rawValue *= base
+		}
+	}
+	rawValue *= remainsBuilder
+
+	return &factored{rawValue, ft.cover, counts, remainsBuilder}
+}
+
+type factored struct {
+	v   int
+	cover   []int
+	counts  []int
+	remains int
+}
+
+
 
 
 
@@ -105,23 +152,4 @@ func (f factored) divisorCount() int {
 
 
 
-func (t factorTable) lcm(fMaps ... factored) *factored {
-	if len(fMaps) == 0 {
-		// error
-	}
 
-	// baseline is zero of everything
-	firstCover := fMaps[0].cover
-	counts := make([]int, len(firstCover))
-
-	// if any factormap uses more copies of a factor, up our count to that
-	for _, fm := range fMaps {
-		for i, d := range fm.counts {
-			if counts[i] < d {
-				counts[i] = d
-			}
-		}
-	}
-
-	return &factored{0, firstCover, counts, 1}
-}

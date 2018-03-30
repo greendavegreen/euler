@@ -77,3 +77,32 @@ func TestDivisorCount(t *testing.T) {
 
 	}
 }
+
+func TestFtLCM(t *testing.T) {
+	ft := NewFactorTable(200)
+
+	cases := []struct {
+		input    []int
+		expected int
+	}{
+		{[]int{}, 0},
+		{[]int{7}, 7},
+		{[]int{4, 8}, 8},
+		{[]int{4, 18}, 36},
+		{[]int{60, 9}, 180},
+
+		{[]int{19, 23}, 19 * 23},
+		{[]int{2, 3, 197, 199}, 2 * 3 * 197 * 199},
+	}
+	for _, c := range cases {
+		items := make([]factored, len(c.input))
+		for i, v := range c.input {
+			items[i] = *ft.factor(v)
+		}
+
+		actual := ft.lcm(items...)
+		if actual.v != c.expected {
+			t.Errorf("input: %d - expected %v, actual %v", c.input, c.expected, actual.v)
+		}
+	}
+}
