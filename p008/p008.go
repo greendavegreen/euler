@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"unicode"
 )
 
 var input string = `
@@ -28,18 +27,18 @@ var input string = `
 71636269561882670428252483600823257530420752963450`
 
 func main() {
-	a := NewAccumulator(13)
+	ch := make(chan int)
+	go streamDigits(input, ch)
+
 	max := 0
 
-	for _, r := range []rune(input) {
-		if unicode.IsNumber(r) {
-			digit := int(r-'0')
-			a.ingest(digit)
-			if v := a.value(); v > max {
-				max = v
-				fmt.Printf("New Max Value: %v\n", a.value())
-				a.dump()
-			}
+	a := NewAccumulator(13)
+	for digit := range ch {
+		a.ingest(digit)
+		if v := a.value(); v > max {
+			max = v
 		}
 	}
+
+	fmt.Printf("Max Value: %v\n", max)
 }
