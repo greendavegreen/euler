@@ -118,10 +118,6 @@ type factored struct {
 	remains int
 }
 
-
-
-
-
 func (f factored) primeFactors() []int {
 	var res []int
 	for i, base := range f.cover {
