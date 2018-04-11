@@ -23,6 +23,7 @@ func detector() (func([] int), func() int) {
 	m := make(map[int]bool)
 
 	// detect form     abcd = ef * ghi
+	// detect form     abcd = e * fghi
 	test := func(a []int) {
 		prod := a[0]*1000 + a[1]*100 + a[2]*10 + a[3]
 
