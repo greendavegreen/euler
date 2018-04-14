@@ -19,14 +19,12 @@ func main() {
 	pMap[knownPs[0]] = true
 	pMap[knownPs[1]] = true
 
-
 	for s := p(); s < 10000000; s = p() {
 		for _, d := range knownPs {
 			pj := (s - d) / 2
 			pk := (s + d) / 2
-
 			if pMap[pj] && pMap[pk] {
-				fmt.Println("super", d, pj, pk, s)
+				fmt.Println("solution", d, pj, pk, s)
 				break
 			}
 		}
